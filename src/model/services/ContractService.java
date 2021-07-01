@@ -8,18 +8,19 @@ import model.entities.Installment;
 
 public class ContractService {
 
-	private TaxService taxService;
+	private OnlinePaymentService onlinePaymentService;
 
-	public ContractService(TaxService taxService) {
-		this.taxService = taxService;
+	public ContractService(OnlinePaymentService onlinePaymentService) {
+		this.onlinePaymentService = onlinePaymentService;
 	}
 
-	public void processContract(Contract contract, Integer numbOfInstallment) {
-		double value = contract.getTotalValue() / numbOfInstallment;
-		for (int i = 1; i <= numbOfInstallment; i++) {
+	public void processContract(Contract contract, Integer months) {
+		double installmentAmount = contract.getTotalValue() / months;
+		for (int i = 1; i <= months; i++) {
+			double installmentUpdated = installmentAmount + onlinePaymentService.interest(installmentAmount, i);
+			double totalInstallment = installmentUpdated + onlinePaymentService.paymentFee(installmentUpdated);
 			Date date = addMonths(contract.getDateContract(), i);
-			contract.addInstallment(new Installment(date, taxService.Calculation(value, i)));
-
+			contract.addInstallment(new Installment(date, totalInstallment));
 		}
 	}
 
